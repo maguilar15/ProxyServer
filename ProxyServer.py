@@ -11,7 +11,6 @@ try:
 except SyntaxError:
     print("Use Python 3 to execute the Proxy Server.")
 
-
 # The proxy server is listening at 8888
 tcpSerSock = socket(AF_INET, SOCK_STREAM)
 tcpSerSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -21,7 +20,7 @@ tcpSerSock.listen(100)
 print('Ready to serve...')
 
 while 1:
-    # Strat receiving data from the client
+    # Start receiving data from the client
     tcpCliSock, addr = tcpSerSock.accept()
 
     print('Received a connection from:', addr)
@@ -40,21 +39,25 @@ while 1:
     try:
         # Check whether the file exist in the cache
         cacheHit = os.path.exists(os.path.join(os.getcwd(), filename))
+        fileExist = cacheHit if "true" else "false"
         print(f"Cache Hit: {cacheHit}")
         if not cacheHit:
             print(f"File does not exist in the proxy's cache: filename={filename}")
             fileExist = "false"
-            raise IOError
+            raise OSError
 
         # ProxyServer finds a cache hit and generates a response message
         tcpCliSock.send("HTTP/1.0 200 OK\r\n".encode("utf-8"))
         tcpCliSock.send("Content-Type:text/html\r\n".encode("utf-8"))
         ## FILL IN HERE...
-        #filetouse = open(filename, "r")
-        print(f"File exists in proxy's cache: filename={filename}")
+        try:
+            filetouse = open(filename, "rb")
+            print(f"File exists in proxy's cache: filename={filename}")
+        except FileNotFoundError as e:
+            print(f"File not found for filename={filename}")
 
     # Error handling for file not found in cache, need to talk to origin server and get the file
-    except IOError:
+    except OSError:
 
         if fileExist == "false":
             hostname = filename.replace("www.", "")  # result: yahoo.com
@@ -62,19 +65,24 @@ while 1:
 
             s = socket(AF_INET, SOCK_STREAM)
             s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-            s.connect((hostname,80))
 
-            requestData = f"GET http://{filename} HTTP/1.0\r\n\n"
-            s.send(requestData.encode("utf-8"))
-            data = s.recv(1024)
-            print(f"Result: {repr(data)}")
-            s.close()
-    else:
-        # HTTP response message for file not found
-        tcpCliSock.send("HTTP/1.0 404 sendErrorErrorError\r\n".encode("utf-8"))
-        tcpCliSock.send("Content-Type:text/html\r\n".encode("utf-8"))
-        tcpCliSock.send("\r\n".encode("utf-8"))
-
+            try:
+                s.connect((filename, 80))
+                requestData = f"GET http://{filename} HTTP/1.0\n\n"
+                tmpFile = s.makefile("r", 0)
+                tmpFile.write(requestData.encode("utf-8"))
+                s.send(tmpFile.readline().encode("utf-8"))
+                data = s.recv(1024)
+                with open(filename, "wb") as f:
+                    f.write(data)
+                    f.close()
+            except gaierror as e:
+                print(f"Name Service unknown for {filename}, exception={e}")
+        else:
+            # HTTP response message for file not found
+            tcpCliSock.send("HTTP/1.0 404 sendErrorErrorError\r\n".encode("utf-8"))
+            tcpCliSock.send("Content-Type:text/html\r\n".encode("utf-8"))
+            tcpCliSock.send("\r\n".encode("utf-8"))
 # Close the client and the server sockets
-    tcpCliSock.close()
-    tcpSerSock.close()
+tcpCliSock.close()
+tcpSerSock.close()
