@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from socket import *
-import sys, os
+import sys, os, requests
 
 
 try:
@@ -61,6 +61,7 @@ while 1:
 
         if fileExist == "false":
             hostname = filename.replace("www.", "")  # result: yahoo.com
+            requestData = f"GET / HTTP/1.1\r\n{filename}\r\n\r\n"
             print(f"Name or service not known and fetching: hostname={hostname}, filename={filename}")
 
             s = socket(AF_INET, SOCK_STREAM)
@@ -68,7 +69,6 @@ while 1:
 
             try:
                 s.connect((filename, 80))
-                requestData = f"GET http://{filename} HTTP/1.0\n\n"
                 tmpFile = s.makefile("r", 0)
                 tmpFile.write(requestData.encode("utf-8"))
                 s.send(tmpFile.readline().encode("utf-8"))
@@ -77,7 +77,7 @@ while 1:
                     f.write(data)
                     f.close()
             except gaierror as e:
-                print(f"Name Service unknown for {filename}, exception={e}")
+                print(f"Name Service unknown for {filename}, exception={e}, requestData={requestData}")
         else:
             # HTTP response message for file not found
             tcpCliSock.send("HTTP/1.0 404 sendErrorErrorError\r\n".encode("utf-8"))
