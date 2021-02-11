@@ -1,4 +1,4 @@
-import os, requests, shutil
+import os, requests
 
 def start_proxy_server(tcpServerSocket):
     print('Ready to serve...')
@@ -41,8 +41,8 @@ def start_proxy_server(tcpServerSocket):
             requestData = f"GET / HTTP/1.1\r\nHost: {filename}\r\nConnection: keep-alive\r\n\r\n"
             try:
                 print(f"Fetching from Origin Server.........................Request Data\n{requestData}")
-                r = requests.get(f"http://{filetouse}",headers=None,stream=True)
-                print(f"Response Code: {r} for {filename} and response object: {r.raw}")
+                r = requests.get(f"https://{filetouse}",headers=None,stream=True)
+                print(f"Response Code: {r} for {filename}")
                 with open(filename,"wb") as f:
                     f.write(r.content)
                     tcpCliSock.send(r.content)

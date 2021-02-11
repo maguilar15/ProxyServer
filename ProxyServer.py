@@ -8,7 +8,6 @@ if __name__ == '__main__':
     if len(sys.argv) <= 1:
         print('Usage : "python ProxyServer.py server_ip"\n[server_ip : It is the IP Address Of Proxy Server')
         sys.exit(2)
-    os.mkdir("cache")
     # The proxy server is listening at 8888
     tcpSerSock = socket(AF_INET, SOCK_STREAM)
     tcpSerSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
