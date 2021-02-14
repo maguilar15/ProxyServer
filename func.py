@@ -1,5 +1,5 @@
 from socket import *
-import os, requests, ssl
+import os, requests
 
 def start_proxy_server(tcpServerSocket):
     print('Ready to serve...')
