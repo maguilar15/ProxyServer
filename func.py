@@ -51,7 +51,6 @@ def start_proxy_server(tcpServerSocket):
                 print(f"Response Code: {r.status_code} for {filetouse}")
                 with open(filetouse,"wb") as f:
                     f.write(r.content)
-                    tcpCliSock.send(r.content)
                     f.close()
                 print(f"written {filename} to cache.")
             except Exception as e:
